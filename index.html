@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Student Performance Predictor Portal</title>
+    <meta name="description" content="Dedicated AI-powered educational application tool designed for student performance predictions, academic tracking, and parent reports.">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ==========================================
+       MANDATORY ACKNOWLEDGEMENT ACTION ALERT BANNER
+       ========================================== -->
+    <div id="confirmation-banner" class="confirmation-banner" style="display: none;">
+        <p><i class="fas fa-exclamation-triangle"></i> Action Required: Please confirm that you have checked the student progress and AI suggestions.</p>
+        <button type="button" class="confirm-btn" id="confirm-acknowledge-btn">Confirm Check</button>
+    </div>
+
+    <!-- ==========================================
+       LOGIN VIEW (SHOWN BY DEFAULT)
+       ========================================== -->
+    <div id="login-container" class="login-wrapper">
+        <div class="glass-card login-card">
+            <div class="login-header">
+                <div class="login-logo">AI</div>
+                <h1>Student Predictor Portal</h1>
+                <p>Enter your credentials to access your workspace</p>
+            </div>
+            
+            <div id="login-error" class="error-banner"></div>
+            
+            <form id="login-form">
+                <div class="login-form-group">
+                    <label for="username-input">Username</label>
+                    <div class="login-input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username-input" class="login-input" placeholder="Enter username" required>
+                    </div>
+                </div>
+                
+                <div class="login-form-group">
+                    <label for="password-input">Password</label>
+                    <div class="login-input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password-input" class="login-input" placeholder="Enter password" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Sign In <i class="fas fa-sign-in-alt"></i></button>
+            </form>
+            
+            <!-- Credentials helper panel -->
+            <div class="credentials-box">
+                <h4>Mock Login Credentials</h4>
+                <div class="credentials-row">
+                    <span>Admin: <strong>admin</strong> / <strong>admin123</strong></span>
+                </div>
+                <div class="credentials-row">
+                    <span>Teacher (Math): <strong>mr_sharma</strong> / <strong>sharma123</strong></span>
+                </div>
+                <div class="credentials-row">
+                    <span>Student: <strong>student</strong> / <strong>student123</strong></span>
+                </div>
+                <div class="credentials-row">
+                    <span>Parent: <strong>parent</strong> / <strong>parent123</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+       MAIN PORTAL LAYOUT VIEW (SHOWN POST-LOGIN)
+       ========================================== -->
+    <div id="app-container" class="portal-layout" style="display: none;">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="portal-sidebar">
+            <div class="header-brand">
+                <div class="header-brand-logo">AI</div>
+                <span>Predictor</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <span class="sidebar-title">Menu Workspace</span>
+                <ul class="sidebar-menu-list" id="sidebar-menu">
+                    <!-- Dynamic navigation buttons generated in script.js -->
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="portal-content">
+            
+            <!-- Sticky Top Header -->
+            <header class="portal-header">
+                <div>
+                    <!-- Portal heading context -->
+                </div>
+                <div class="header-actions">
+                    <button type="button" class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle Dark Mode">
+                        <i class="fas fa-moon"></i>
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    
+                    <div class="user-profile-badge">
+                        <div class="user-avatar-circle">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="notifications-badge" id="notifications-badge" style="display: none;">0</span>
+                        </div>
+                        <div>
+                            <div class="user-name-text" id="user-name-display">Active User</div>
+                            <span class="status-badge" id="user-role-badge" style="font-size: 0.65rem; padding: 1px 8px; margin-top: 2px;">Role</span>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-secondary" id="logout-btn" style="padding: 8px 16px; font-size: 0.85rem;">
+                        <i class="fas fa-sign-out-alt"></i> Log Out
+                    </button>
+                </div>
+            </header>
+
+            <!-- Active Viewport Container -->
+            <main class="portal-container">
+                
+                <!-- ==========================================
+                   A. TEACHER: STUDENT DIRECTORY PANEL (RESTRICTED SUBJECT)
+                   ========================================== -->
+                <div id="teacher-students" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Student Directory (<span id="teacher-subject-indicator">Subject</span>)</h2>
+                        <p>Search profiles, review grade outcomes, and check comments logged in your subject classes.</p>
+                    </div>
+                    
+                    <div class="glass-card" style="padding: 24px;">
+                        <div class="directory-controls">
+                            <div class="search-input-wrapper">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="teacher-search-input" class="search-input" placeholder="Search student by name...">
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Subject Attendance</th>
+                                        <th>Unit Exam Score</th>
+                                        <th>Current Marks</th>
+                                        <th>Predict Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teacher-table-body">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   B. TEACHER: SUBJECT PREDICTOR EVALUATION ENGINE
+                   ========================================== -->
+                <div id="teacher-predictor" class="content-panel">
+                    <div class="panel-header">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <h2>Evaluation Engine (<span id="teval-subject-title">Subject</span>)</h2>
+                                <p>Modify metrics parameters for your subject to evaluate prediction outcomes.</p>
+                            </div>
+                            <div style="display:flex; gap: 8px;">
+                                <button type="button" class="btn btn-secondary btn-sm" id="download-marks-template" style="padding: 6px 12px; font-size: 0.85rem;">
+                                    <i class="fas fa-download"></i> Download Template
+                                </button>
+                                <label class="btn btn-primary btn-sm" style="cursor:pointer; position:relative; padding: 6px 12px; font-size: 0.85rem;">
+                                    <i class="fas fa-upload"></i> Upload CSV
+                                    <input type="file" id="upload-marks-csv" accept=".csv" style="position:absolute; width:1px; height:1px; opacity:0; overflow:hidden;">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="predictor-layout-grid">
+                        <!-- Form Area -->
+                        <div class="glass-card" style="padding: 32px;">
+                            <form id="teval-form">
+                                <div class="student-selector-group">
+                                    <label for="teval-student-select">Select Student Profile</label>
+                                    <select id="teval-student-select" class="app-select" required>
+                                        <option value="" disabled selected>Choose student...</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <div class="form-label-wrapper" style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+                                        <label for="teval-attendance" style="font-weight:600;">Subject Attendance (%)</label>
+                                        <span class="value-display text-green" id="val-teval-attendance" style="font-weight:700;">80%</span>
+                                    </div>
+                                    <input type="range" id="teval-attendance" class="range-slider" min="0" max="100" value="80">
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <div class="form-label-wrapper" style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+                                        <label for="teval-assignments" style="font-weight:600;">Assignments Average (0-100)</label>
+                                        <span class="value-display text-green" id="val-teval-assignments" style="font-weight:700;">75</span>
+                                    </div>
+                                    <input type="range" id="teval-assignments" class="range-slider" min="0" max="100" value="75">
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <div class="form-label-wrapper" style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+                                        <label for="teval-unittests" style="font-weight:600;">Unit Test Average (0-100)</label>
+                                        <span class="value-display text-green" id="val-teval-unittests" style="font-weight:700;">70</span>
+                                    </div>
+                                    <input type="range" id="teval-unittests" class="range-slider" min="0" max="100" value="70">
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <div class="form-label-wrapper" style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+                                        <label for="teval-practicals" style="font-weight:600;">Practical Marks (0-100)</label>
+                                        <span class="value-display text-green" id="val-teval-practicals" style="font-weight:700;">75</span>
+                                    </div>
+                                    <input type="range" id="teval-practicals" class="range-slider" min="0" max="100" value="75">
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <div class="form-label-wrapper" style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+                                        <label for="teval-participation" style="font-weight:600;">Class Participation (0-100)</label>
+                                        <span class="value-display text-green" id="val-teval-participation" style="font-weight:700;">70</span>
+                                    </div>
+                                    <input type="range" id="teval-participation" class="range-slider" min="0" max="100" value="70">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Run ML Evaluation <i class="fas fa-calculator"></i></button>
+                            </form>
+                        </div>
+                        
+                        <!-- Predict Result Container -->
+                        <div class="demo-result-container">
+                            <div class="demo-result-placeholder" id="teval-result-placeholder" style="border: 2px dashed var(--glass-border); padding: 40px; border-radius: var(--border-radius-md); text-align: center; color: var(--text-muted); min-height: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.5;"></i>
+                                <h3>Classification Awaiting</h3>
+                                <p>Select student, modify sliders, and run evaluation to see classification categories.</p>
+                            </div>
+                            
+                            <div class="demo-result-card" id="teval-result-card" style="display: none; padding: 30px; border-radius: var(--border-radius-md); text-align: center; min-height: 380px; flex-direction: column; align-items: center; justify-content: center; gap:16px;">
+                                <div class="result-badge" id="teval-result-label">Excellent</div>
+                                <div class="result-score-circle" style="border-width: 4px; margin-bottom: 12px;">
+                                    <span class="result-score-number" id="teval-result-score">85%</span>
+                                    <span class="result-score-label">Score</span>
+                                </div>
+                                <h3 style="margin-bottom: 2px;">Evaluation Output</h3>
+                                <p class="result-description" id="teval-result-desc" style="font-size: 0.95rem; line-height: 1.4;"></p>
+                                
+                                <!-- Alert Publish settings -->
+                                <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top: 10px;">
+                                    <input type="checkbox" id="publish-notify-check" checked style="width:16px; height:16px; cursor:pointer;">
+                                    <label for="publish-notify-check" style="font-size:0.85rem; font-weight:600; cursor:pointer; color:var(--text-secondary);">Publish & Send Alerts to Parents & Students</label>
+                                </div>
+                                
+                                <div style="display:flex; gap:8px; margin-top: 10px;">
+                                    <button type="button" class="btn btn-secondary" id="teval-draft-btn" style="flex:1;">
+                                        <i class="fas fa-save"></i> Save Draft
+                                    </button>
+                                    <button type="button" class="btn btn-primary" id="teval-finalize-btn" style="flex:1;">
+                                        <i class="fas fa-check-circle"></i> Finalize & Send
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   C. TEACHER: TOPIC-WISE REMARKS & ANALYSIS
+                   ========================================== -->
+                <div id="teacher-remarks" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Topic-Wise Remarks & Analytics (<span id="remarks-subject-indicator">Subject</span>)</h2>
+                        <p>Provide in-depth comments on student topics and review automated class-wide weakness diagnostics.</p>
+                    </div>
+                    
+                    <div class="predictor-layout-grid">
+                        <!-- Comment Form card -->
+                        <div class="glass-card" style="padding: 32px;">
+                            <h3 style="font-size:1.2rem; margin-bottom: 20px;">Compose Remark Log</h3>
+                            <form id="remark-form">
+                                <div class="login-form-group">
+                                    <label for="remark-student-select">Select Student</label>
+                                    <select id="remark-student-select" class="app-select" style="max-width:100%;" required>
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                
+                                <div class="login-form-group">
+                                    <label for="remark-topic-select">Subject Topic</label>
+                                    <select id="remark-topic-select" class="app-select" style="max-width:100%;" required>
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="remark-topic-custom">Or Type Custom Topic</label>
+                                    <input type="text" id="remark-topic-custom" class="login-input" placeholder="Enter custom topic name...">
+                                </div>
+
+                                <div class="login-form-group">
+                                    <label for="remark-status-select">Topic Performance</label>
+                                    <select id="remark-status-select" class="app-select" style="max-width:100%;" required>
+                                        <option value="needs-improvement">Needs Improvement (Struggling)</option>
+                                        <option value="proficient">Proficient (Excellent)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="login-form-group">
+                                    <label for="remark-comment-textarea">In-Depth Comments</label>
+                                    <textarea id="remark-comment-textarea" class="contact-textarea" style="height: 100px; width: 100%; padding: 12px; border-radius: var(--border-radius-sm); background: var(--bg-primary); border: 1px solid var(--glass-border); color: var(--text-primary);" placeholder="Describe the student's conceptual weakness or plan teaching adjustments..." required></textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 12px;">Save Remark & Analyze <i class="fas fa-comment-dots"></i></button>
+                            </form>
+                        </div>
+                        
+                        <!-- Common Weak Topics aggregation card -->
+                        <div class="glass-card" style="padding: 32px;">
+                            <h3 style="font-size:1.2rem; margin-bottom: 8px;"><i class="fas fa-analytics text-red"></i> Common Weak Topics in Class</h3>
+                            <p style="color: var(--text-muted); font-size:0.85rem; margin-bottom: 24px;">Automated diagnostics tracking topic references tagged for improvements across student comments.</p>
+                            
+                            <div id="remarks-analysis-body" style="display:flex; flex-direction:column; gap:20px;">
+                                <!-- Rendered dynamically in script.js -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   D. ADMIN & TEACHERS: SCHOOL CIRCULARS COMPOSE
+                   ========================================== -->
+                <div id="teacher-circulars" class="content-panel">
+                    <div class="panel-header">
+                        <h2>School Circular Composer</h2>
+                        <p>Write bulletins and notices to keep parents informed of event schedules or administrative tasks.</p>
+                    </div>
+                    
+                    <div class="predictor-layout-grid">
+                        <!-- Composer card -->
+                        <div class="glass-card" style="padding: 32px;">
+                            <h3 style="font-size:1.2rem; margin-bottom: 20px;">Compose Circular Notice</h3>
+                            <form id="circular-form">
+                                <div class="login-form-group">
+                                    <label for="circular-title-input">Circular Title</label>
+                                    <input type="text" id="circular-title-input" class="contact-input" placeholder="e.g. Schedule for Science Fair" required>
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="circular-target-select">Target Audience</label>
+                                    <select id="circular-target-select" class="app-select" required>
+                                        <option value="entire-school">Entire School</option>
+                                        <option value="specific-class">Specific Class</option>
+                                        <option value="specific-student">Specific Student</option>
+                                        <option value="specific-parent">Specific Parent</option>
+                                    </select>
+                                </div>
+                                <div class="login-form-group" id="circular-class-group" style="display: none;">
+                                    <label for="circular-class-select">Select Class</label>
+                                    <select id="circular-class-select" class="app-select">
+                                        <option value="all">All Classes</option>
+                                        <option value="class-10">Class 10</option>
+                                        <option value="class-11">Class 11</option>
+                                        <option value="class-12">Class 12</option>
+                                    </select>
+                                </div>
+                                <div class="login-form-group" id="circular-student-group" style="display: none;">
+                                    <label for="circular-student-select">Select Student</label>
+                                    <select id="circular-student-select" class="app-select">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="circular-content-textarea">Circular Body</label>
+                                    <textarea id="circular-content-textarea" class="contact-textarea" style="height: 140px; width: 100%; padding: 12px; border-radius: var(--border-radius-sm); background: var(--bg-primary); border: 1px solid var(--glass-border); color: var(--text-primary);" placeholder="Write the circular message contents here..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 12px;">Publish Circular <i class="fas fa-bullhorn"></i></button>
+                            </form>
+                        </div>
+                        
+                        <!-- List card -->
+                        <div class="glass-card" style="padding: 32px; max-height: 520px; overflow-y: auto;">
+                            <h3 style="font-size:1.2rem; margin-bottom: 20px;">Composed Circulars</h3>
+                            <div id="teacher-circulars-list">
+                                <!-- Rendered dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   E. ADMIN: GLOBAL ANALYTICS DASHBOARD
+                   ========================================== -->
+                <div id="admin-dashboard" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Global Performance Analytics</h2>
+                        <p>School-wide oversight on students counts, flagged warnings, and subject-wise averages.</p>
+                    </div>
+                    
+                    <div class="analytics-summary-grid">
+                        <div class="glass-card stat-widget total">
+                            <div class="stat-widget-icon"><i class="fas fa-users"></i></div>
+                            <div class="stat-widget-info">
+                                <h3 id="admin-total-students">0</h3>
+                                <p>Total Students</p>
+                            </div>
+                        </div>
+                        <div class="glass-card stat-widget at-risk">
+                            <div class="stat-widget-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="stat-widget-info">
+                                <h3 id="admin-at-risk-students">0</h3>
+                                <p>Needs Attention</p>
+                            </div>
+                        </div>
+                        <div class="glass-card stat-widget feedbacks">
+                            <div class="stat-widget-icon"><i class="fas fa-check-double"></i></div>
+                            <div class="stat-widget-info">
+                                <h3 id="admin-confirmations-count">0</h3>
+                                <p>Progress Checks</p>
+                            </div>
+                        </div>
+                        <div class="glass-card stat-widget">
+                            <div class="stat-widget-icon"><i class="fas fa-chart-line"></i></div>
+                            <div class="stat-widget-info">
+                                <h3 id="admin-avg-attendance">0%</h3>
+                                <p>Avg Attendance</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attendance Trend Chart -->
+                    <div class="glass-card" style="padding: 24px; margin-top: 32px;">
+                        <h3 style="font-size:1.25rem; margin-bottom: 20px;">Attendance Trend Analysis</h3>
+                        <div id="admin-attendance-chart" style="height: 200px; width: 100%;"></div>
+                    </div>
+                    
+                    <!-- Subject averages table -->
+                    <div class="glass-card" style="padding: 24px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                            <h3 style="font-size:1.25rem; margin-bottom: 0;">Global Subject & Teacher Analytics</h3>
+                            <button type="button" class="btn btn-secondary btn-sm" id="export-subject-analytics" style="padding: 6px 12px; font-size: 0.85rem;">
+                                <i class="fas fa-download"></i> Export CSV
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Subject Name</th>
+                                        <th>Assigned Teacher</th>
+                                        <th>Class Average Score</th>
+                                        <th>Risk Warnings</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-analytics-table-body">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Student-wise Analysis Predictions -->
+                    <div class="glass-card" style="padding: 24px; margin-top: 32px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                            <h3 style="font-size:1.25rem; margin-bottom: 0;">Student-wise Analysis Predictions</h3>
+                            <button type="button" class="btn btn-secondary btn-sm" id="export-student-predictions" style="padding: 6px 12px; font-size: 0.85rem;">
+                                <i class="fas fa-download"></i> Export CSV
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Overall Score</th>
+                                        <th>Predicted Category</th>
+                                        <th>Trend</th>
+                                        <th>Recommendation</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-student-predictions-body">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   F. ADMIN: USER DIRECTORY & CSV UPLOADS
+                   ========================================== -->
+                <div id="admin-users" class="content-panel">
+                    <div class="panel-header">
+                        <h2>User Directory & CSV Management</h2>
+                        <p>Download upload templates, import user files via file reader parser, and check credentials registry.</p>
+                    </div>
+                    
+                    <div class="glass-card" style="padding: 32px; margin-bottom: 32px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 20px;">
+                        <div>
+                            <h3 style="font-size: 1.2rem; margin-bottom: 6px;">Batch User Import</h3>
+                            <p style="color:var(--text-muted); font-size:0.9rem;">Download our formatted template, populate details, and upload the CSV to register users.</p>
+                        </div>
+                        <div style="display:flex; gap: 12px; align-items:center; flex-wrap:wrap;">
+                            <button type="button" class="btn btn-secondary" id="download-csv-template"><i class="fas fa-download"></i> Download CSV Template</button>
+                            <label class="btn btn-primary" style="cursor:pointer; position:relative;">
+                                <i class="fas fa-upload"></i> Upload CSV File
+                                <input type="file" id="upload-csv-input" accept=".csv" style="position:absolute; width:1px; height:1px; opacity:0; overflow:hidden;">
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card" style="padding: 24px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                            <h3 style="font-size:1.25rem; margin-bottom: 0;">System Credentials Directory</h3>
+                            <div class="search-input-wrapper" style="max-width: 250px;">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="admin-users-search" class="search-input" placeholder="Search users...">
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Profile Name</th>
+                                        <th>Role Type</th>
+                                        <th>Username ID</th>
+                                        <th>Assigned Subject (Teachers)</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- User Edit Modal -->
+                    <div id="user-edit-modal" class="modal-overlay">
+                        <div class="glass-card modal-content-card" style="max-width: 500px;">
+                            <div class="modal-header-section">
+                                <h3>Edit User Profile</h3>
+                                <button type="button" class="modal-close-icon" id="user-modal-close"><i class="fas fa-times-circle"></i></button>
+                            </div>
+                            <form id="user-edit-form">
+                                <input type="hidden" id="edit-user-index">
+                                <div class="login-form-group">
+                                    <label for="edit-user-name">Profile Name</label>
+                                    <input type="text" id="edit-user-name" class="login-input" required>
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="edit-user-username">Username</label>
+                                    <input type="text" id="edit-user-username" class="login-input" required>
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="edit-user-password">Password</label>
+                                    <input type="text" id="edit-user-password" class="login-input" required>
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="edit-user-role">Role</label>
+                                    <select id="edit-user-role" class="app-select" required>
+                                        <option value="Student">Student</option>
+                                        <option value="Teacher">Teacher</option>
+                                        <option value="Parent">Parent</option>
+                                    </select>
+                                </div>
+                                <div class="login-form-group" id="edit-subject-group" style="display: none;">
+                                    <label for="edit-user-subject">Assigned Subject</label>
+                                    <select id="edit-user-subject" class="app-select">
+                                        <option value="Mathematics">Mathematics</option>
+                                        <option value="Science">Science</option>
+                                        <option value="English">English</option>
+                                        <option value="Computer Science">Computer Science</option>
+                                    </select>
+                                </div>
+                                <div class="login-form-group" id="edit-parent-group" style="display: none;">
+                                    <label for="edit-user-parent">Parent Username</label>
+                                    <input type="text" id="edit-user-parent" class="login-input">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Update User</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   G. ADMIN: SCHOOL CIRCULARS COMPOSER
+                   ========================================== -->
+                <div id="admin-circulars" class="content-panel">
+                    <!-- Shares HTML elements mapping to loadCircularComposerTab -->
+                    <div class="panel-header">
+                        <h2>School Circular Composer</h2>
+                        <p>Write bulletins and notices to keep parents informed of event schedules or administrative tasks.</p>
+                    </div>
+                    
+                    <div class="predictor-layout-grid">
+                        <div class="glass-card" style="padding: 32px;">
+                            <h3 style="font-size:1.2rem; margin-bottom: 20px;">Compose Circular Notice</h3>
+                            <form id="circular-form">
+                                <div class="login-form-group">
+                                    <label for="circular-title-input">Circular Title</label>
+                                    <input type="text" id="circular-title-input" class="contact-input" placeholder="e.g. Schedule for Science Fair" required>
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="circular-target-select">Target Audience</label>
+                                    <select id="circular-target-select" class="app-select" required>
+                                        <option value="entire-school">Entire School</option>
+                                        <option value="specific-class">Specific Class</option>
+                                        <option value="specific-student">Specific Student</option>
+                                        <option value="specific-parent">Specific Parent</option>
+                                    </select>
+                                </div>
+                                <div class="login-form-group" id="circular-class-group" style="display: none;">
+                                    <label for="circular-class-select">Select Class</label>
+                                    <select id="circular-class-select" class="app-select">
+                                        <option value="all">All Classes</option>
+                                        <option value="class-10">Class 10</option>
+                                        <option value="class-11">Class 11</option>
+                                        <option value="class-12">Class 12</option>
+                                    </select>
+                                </div>
+                                <div class="login-form-group" id="circular-student-group" style="display: none;">
+                                    <label for="circular-student-select">Select Student</label>
+                                    <select id="circular-student-select" class="app-select">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="circular-content-textarea">Circular Body</label>
+                                    <textarea id="circular-content-textarea" class="contact-textarea" style="height: 140px; width: 100%; padding: 12px; border-radius: var(--border-radius-sm); background: var(--bg-primary); border: 1px solid var(--glass-border); color: var(--text-primary);" placeholder="Write the circular message contents here..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 12px;">Publish Circular <i class="fas fa-bullhorn"></i></button>
+                            </form>
+                        </div>
+                        
+                        <div class="glass-card" style="padding: 32px; max-height: 520px; overflow-y: auto;">
+                            <h3 style="font-size:1.2rem; margin-bottom: 20px;">Composed Circulars</h3>
+                            <div id="admin-circulars-list">
+                                <!-- Rendered dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   H. ADMIN: APPRECIATIONS & RECOMMENDATIONS HUB
+                   ========================================== -->
+                <div id="admin-appreciations" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Appreciations & Recommendations Hub</h2>
+                        <p>Review dynamically compiled appreciation certs for students exceeding 80% marks and see goal suggestions.</p>
+                    </div>
+                    
+                    <div id="admin-appreciations-list" style="display:flex; flex-direction:column; gap:20px;">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   I. STUDENT: PERFORMANCE PROFILE DASHBOARD
+                   ========================================== -->
+                <div id="student-dashboard" class="content-panel">
+                    <div class="panel-header">
+                        <h2>My Performance Dashboard</h2>
+                        <p>Track your cumulative scores, predict categories, and check historical grading trends.</p>
+                    </div>
+                    
+                    <div class="student-dashboard-split">
+                        <div class="glass-card dashboard-summary-widget">
+                            <div>
+                                <span class="status-badge" id="stud-status-badge" style="margin-bottom: 12px;">Excellent</span>
+                                <h3 style="font-size: 1.6rem; margin-bottom: 6px;">Evaluation Summary</h3>
+                                <p style="color: var(--text-muted); font-size: 0.9rem;" id="stud-category-desc">Predicted Category: <strong id="stud-category" class="text-green">Excellent</strong></p>
+                            </div>
+                            <div class="summary-score-circle">
+                                <span class="summary-score-number" id="stud-score">85%</span>
+                                <span class="summary-score-label">Average</span>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-card chart-card-container">
+                            <h3>Performance Progress Trend</h3>
+                            <div class="chart-wrapper-frame" id="stud-chart-wrapper">
+                                <!-- SVG drawn dynamically in script.js -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 style="font-size: 1.25rem; margin-bottom: 20px;">Subject & Test Breakdown</h3>
+                    <div class="analytics-summary-grid" id="stud-subject-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                        <!-- Generated in script.js -->
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   J. STUDENT: TARGET COACH (SUGGESTIONS)
+                   ========================================== -->
+                <div id="student-coach" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Target Areas & Suggestions</h2>
+                        <p>Analyze expert subjects and weaknesses requiring focused academic attention.</p>
+                    </div>
+                    
+                    <div class="suggestions-layout">
+                        <div class="glass-card suggestion-card">
+                            <h3 class="text-green"><i class="fas fa-award"></i> Expertise Areas</h3>
+                            <ul id="coach-expertise-list">
+                                <!-- Dynamic strength bullets -->
+                            </ul>
+                        </div>
+                        <div class="glass-card suggestion-card">
+                            <h3 class="text-red"><i class="fas fa-exclamation-triangle"></i> Focus Areas (Weaknesses)</h3>
+                            <ul id="coach-weakness-list">
+                                <!-- Dynamic weakness bullets -->
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card actionable-panel">
+                        <h3 class="text-orange"><i class="fas fa-lightbulb"></i> Actionable Suggestions for Improvement</h3>
+                        <ul id="coach-actionable-list" style="margin-top: 16px;">
+                            <!-- Dynamic recommendations -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   J. STUDENT: CIRCULARS
+                   ========================================== -->
+                <div id="student-circulars" class="content-panel">
+                    <div class="panel-header">
+                        <h2>School Circulars</h2>
+                        <p>View announcements, event schedules, and important notices from teachers and administrators.</p>
+                    </div>
+                    
+                    <div id="student-circulars-list" style="max-width: 800px;">
+                        <!-- Dynamic circular notices list -->
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   K. STUDENT: INBOX ALERTS
+                   ========================================== -->
+                <div id="student-notifications" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Inbox Alerts</h2>
+                        <p>Review update notifications sent to you by teachers and administrators.</p>
+                    </div>
+                    
+                    <div id="student-notifications-list" style="max-width:700px;">
+                        <!-- Dynamic list -->
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   L. STUDENT / PARENT: SUBMIT FEEDBACK PANEL
+                   ========================================== -->
+                <div id="student-feedback" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Submit Prediction Feedback</h2>
+                        <p>Help us improve our model classifications by rating accuracy and sharing comments.</p>
+                    </div>
+                    <div class="glass-card feedback-card-container">
+                        <h3>Model Evaluation Feedback</h3>
+                        <form id="student-feedback-form">
+                            <div class="login-form-group">
+                                <label for="stud-feedback-rating">Rate Prediction Accuracy</label>
+                                <select id="stud-feedback-rating" name="rating" class="app-select" style="max-width: 100%;" required>
+                                    <option value="5">★★★★★ - Highly Accurate</option>
+                                    <option value="4">★★★★☆ - Mostly Accurate</option>
+                                    <option value="3">★★★☆☆ - Average</option>
+                                    <option value="2">★★☆☆☆ - Slightly Inaccurate</option>
+                                    <option value="1">★☆☆☆☆ - Fully Inaccurate</option>
+                                </select>
+                            </div>
+                            <div class="login-form-group">
+                                <label for="stud-feedback-comments">Comments / Enhancement Recommendations</label>
+                                <textarea id="stud-feedback-comments" name="comments" class="contact-textarea" style="height: 120px; width: 100%; padding: 12px; border-radius: var(--border-radius-sm); background: var(--bg-primary); border: 1px solid var(--glass-border); color: var(--text-primary);" placeholder="Tell us how the model predictions matched your classroom grades..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 12px; width: 100%;">Submit Feedback <i class="fas fa-paper-plane"></i></button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   M. PARENT: ACADEMIC PROGRESS
+                   ========================================== -->
+                <div id="parent-progress" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Child Academic Performance Progress</h2>
+                        <p>Monitor grading trends, attendances, and AI prediction warnings for: <strong id="parent-stud-name" class="text-green">Student</strong>.</p>
+                    </div>
+                    
+                    <div class="dashboard-summary-widget glass-card" style="margin-bottom: 40px;">
+                        <div>
+                            <span class="status-badge" id="parent-stud-status-badge" style="margin-bottom: 12px;">Excellent</span>
+                            <h3 style="font-size: 1.6rem; margin-bottom: 6px;">Evaluation Index</h3>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">Predicted Category: <strong id="parent-stud-category" class="text-green">Excellent</strong></p>
+                        </div>
+                        <div class="summary-score-circle" style="border-color: var(--accent-purple);">
+                            <span class="summary-score-number" id="parent-stud-score">85%</span>
+                            <span class="summary-score-label">Average</span>
+                        </div>
+                    </div>
+                    
+                    <h3 style="font-size: 1.25rem; margin-bottom: 20px;">Subject & Test Breakdown</h3>
+                    <div class="analytics-summary-grid" id="parent-subject-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                        <!-- Generated in script.js -->
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   N. PARENT: TIMELINE PERIODIC REPORTS
+                   ========================================== -->
+                <div id="parent-reports" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Periodic Timelines & Progress Sheets</h2>
+                        <p>Select report intervals below to review day-wise attendance, weekly reports, and annual recommendations.</p>
+                    </div>
+                    
+                    <div class="glass-card" style="padding: 24px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                            <div class="reports-timeline-header" style="margin-bottom: 0;">
+                                <button type="button" class="report-tab-btn" data-frequency="day">Day-Wise Log</button>
+                                <button type="button" class="report-tab-btn" data-frequency="week">Weekly Summary</button>
+                                <button type="button" class="report-tab-btn" data-frequency="month">Monthly Assessment</button>
+                                <button type="button" class="report-tab-btn" data-frequency="year">Annual Projected Review</button>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" id="export-parent-reports" style="padding: 6px 12px; font-size: 0.85rem;">
+                                <i class="fas fa-download"></i> Export CSV
+                            </button>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead id="parent-report-table-head">
+                                    <!-- Rendered dynamically based on active tab -->
+                                </thead>
+                                <tbody id="parent-report-table-body">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   O. PARENT: CIRCULAR BULLETIN
+                   ========================================== -->
+                <div id="parent-bulletin" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Circular Bulletin Feed</h2>
+                        <p>Review school announcements, event guidelines, and examination schedule circulars.</p>
+                    </div>
+                    
+                    <div id="parent-circulars-list" style="max-width: 800px;">
+                        <!-- Dynamic circular notices list -->
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   P. PARENT: INBOX ALERTS
+                   ========================================== -->
+                <div id="parent-notifications" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Inbox Alerts</h2>
+                        <p>Review updates and risk triggers alerts sent by teachers regarding your child's classes.</p>
+                    </div>
+                    
+                    <div id="parent-notifications-list" style="max-width:700px;">
+                        <!-- Dynamic list -->
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                   Q. PARENT: SUBMIT FEEDBACK
+                   ========================================== -->
+                <div id="parent-feedback" class="content-panel">
+                    <div class="panel-header">
+                        <h2>Submit Parent Feedback</h2>
+                        <p>Share ratings on model utility and how predictions support homework mentoring at home.</p>
+                    </div>
+                    <div class="glass-card feedback-card-container">
+                        <h3>Parent Feedback Portal</h3>
+                        <form id="parent-feedback-form">
+                            <div class="login-form-group">
+                                <label for="parent-feedback-rating">Rate Predictor Utility</label>
+                                <select id="parent-feedback-rating" name="rating" class="app-select" style="max-width: 100%;" required>
+                                    <option value="5">★★★★★ - Very Helpful</option>
+                                    <option value="4">★★★★☆ - Helpful</option>
+                                    <option value="3">★★★☆☆ - Average</option>
+                                    <option value="2">★★☆☆☆ - Slightly Helpful</option>
+                                    <option value="1">★☆☆☆☆ - Not Helpful</option>
+                                </select>
+                            </div>
+                            <div class="login-form-group">
+                                <label for="parent-feedback-comments">Comments / Home Intervention Support Notes</label>
+                                <textarea id="parent-feedback-comments" name="comments" class="contact-textarea" style="height: 120px; width: 100%; padding: 12px; border-radius: var(--border-radius-sm); background: var(--bg-primary); border: 1px solid var(--glass-border); color: var(--text-primary);" placeholder="Tell us if the prediction logs help you target support at home..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 12px; width: 100%;">Submit Feedback <i class="fas fa-paper-plane"></i></button>
+                        </form>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ==========================================
+       TEACHER-SPECIFIC STUDENT METRICS PREVIEW MODAL
+       ========================================== -->
+    <div id="teacher-student-modal" class="modal-overlay">
+        <div class="glass-card modal-content-card">
+            <div class="modal-header-section">
+                <div>
+                    <h3 id="tmodal-student-name">Student Name</h3>
+                    <div style="margin-top: 6px; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Subject View:</span>
+                        <strong class="text-green" id="tmodal-subject">Subject</strong>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-icon" id="teacher-modal-close" aria-label="Close Modal"><i class="fas fa-times-circle"></i></button>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px;">
+                <!-- Historical progress -->
+                <div>
+                    <h4 style="font-size: 1.1rem; margin-bottom: 12px;"><i class="fas fa-history text-purple"></i> Academic History & Prediction Logs</h4>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date Logged</th>
+                                    <th>Attendance</th>
+                                    <th>Assignments</th>
+                                    <th>Unit Test</th>
+                                    <th>Subject Marks</th>
+                                    <th>Category</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tmodal-history-tbody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Topic Comments -->
+                <div>
+                    <h4 style="font-size: 1.1rem; margin-bottom: 12px;"><i class="fas fa-comment-medical text-blue"></i> Topic-Wise Remarks</h4>
+                    <ul id="tmodal-comments-list" style="list-style:none; display:flex; flex-direction:column; gap:12px; max-height: 280px; overflow-y: auto; padding-right:8px;">
+                        <!-- Populated dynamically -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+</html>
